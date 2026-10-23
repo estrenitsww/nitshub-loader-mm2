@@ -1,0 +1,248 @@
+-- ========================================================
+-- NITSHUB MENU LUA OPTIMIZADO PARA ROBLOX ANDROID
+-- ========================================================
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local ParentGui = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+
+-- Destruir instancias previas de nitshub
+if ParentGui:FindFirstChild("nitshub") then
+    ParentGui["nitshub"]:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "nitshub"
+ScreenGui.Parent = ParentGui
+ScreenGui.ResetOnSpawn = false
+
+-- 1. Botón Flotante con Imagen de Gatito Asombrado
+local FloatingButton = Instance.new("ImageButton")
+FloatingButton.Name = "NitsButton"
+FloatingButton.Parent = ScreenGui
+FloatingButton.Size = UDim2.new(0, 80, 0, 80)
+FloatingButton.Position = UDim2.new(0.05, 0, 0.2, 0)
+FloatingButton.Image = "rbxassetid://135898398418386"
+FloatingButton.BackgroundTransparency = 1
+FloatingButton.Active = true
+FloatingButton.Draggable = true 
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(1, 0)
+ButtonCorner.Parent = FloatingButton
+
+-- 2. Panel Principal Desplegable con Gatito Sonrojado de Fondo
+local MainMenu = Instance.new("ImageLabel")
+MainMenu.Name = "NitsMainFrame"
+MainMenu.Parent = ScreenGui
+MainMenu.Size = UDim2.new(0, 480, 0, 320)
+MainMenu.Position = UDim2.new(0.5, -240, 0.5, -160)
+MainMenu.Image = "rbxassetid://837492948293848" 
+MainMenu.BackgroundTransparency = 0.2
+MainMenu.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainMenu.Visible = false
+MainMenu.Active = true
+MainMenu.Draggable = true
+
+local MenuCorner = Instance.new("UICorner")
+MenuCorner.CornerRadius = UDim.new(0, 12)
+MenuCorner.Parent = MainMenu
+
+-- Título del menú superior
+local Title = Instance.new("TextLabel")
+Title.Text = "nitshub"
+Title.Size = UDim2.new(0, 200, 0, 30)
+Title.Position = UDim2.new(0, 15, 0, 5)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 22
+Title.Font = Enum.Font.SourceSansBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = MainMenu
+
+-- Botón de Cerrar (X)
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = MainMenu
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -35, 0, 5)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 20
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseButton
+
+-- Contenedor de Elementos
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Size = UDim2.new(1, -30, 1, -55)
+ContentContainer.Position = UDim2.new(0, 15, 0, 40)
+ContentContainer.BackgroundTransparency = 0.5
+ContentContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+ContentContainer.Parent = MainMenu
+
+local ContentCorner = Instance.new("UICorner")
+ContentCorner.CornerRadius = UDim.new(0, 8)
+ContentCorner.Parent = ContentContainer
+
+local contentLayout = Instance.new("UIGridLayout")
+contentLayout.CellSize = UDim2.new(0, 140, 0, 35)
+contentLayout.Padding = UDim2.new(0, 10, 0, 10)
+contentLayout.Parent = ContentContainer
+
+-- ========================================================
+-- ANIMACIONES Y LOGICA INTERNA
+-- ========================================================
+local function toggleMenu(open)
+    if open then
+        MainMenu.Visible = true
+        MainMenu.Size = UDim2.new(0, 0, 0, 0)
+        MainMenu.Position = UDim2.new(0.5, 0, 0.5, 0)
+        
+        local menuTween = TweenService:Create(MainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 480, 0, 320),
+            Position = UDim2.new(0.5, -240, 0.5, -160)
+        })
+        local buttonTween = TweenService:Create(FloatingButton, TweenInfo.new(0.2), {ImageTransparency = 1})
+        
+        menuTween:Play()
+        buttonTween:Play()
+        buttonTween.Completed:Connect(function() FloatingButton.Visible = false end)
+    else
+        FloatingButton.Visible = true
+        local buttonTween = TweenService:Create(FloatingButton, TweenInfo.new(0.2), {ImageTransparency = 0})
+        
+        local menuTween = TweenService:Create(MainMenu, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        })
+        
+        buttonTween:Play()
+        menuTween:Play()
+        menuTween.Completed:Connect(function() MainMenu.Visible = false end)
+    end
+end
+
+FloatingButton.MouseButton1Click:Connect(function() toggleMenu(true) end)
+CloseButton.MouseButton1Click:Connect(function() toggleMenu(false) end)
+
+local Toggles = {
+    SilentAim = false, AutoShoot = false, Aimbot = false, TriggerBot = false,
+    WallCheck = false, GrabGun = false, ThrowAimbot = false, KillAll = false,
+    AutoThrow = false, ESP = false
+}
+local Colors = {
+    Murder = Color3.fromRGB(255, 0, 0),
+    Sheriff = Color3.fromRGB(0, 0, 255),
+    Hero = Color3.fromRGB(255, 255, 0),
+    Innocent = Color3.fromRGB(0, 255, 0)
+}
+
+local function getMurderer()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Character and (p.Character:FindFirstChild("Knife") or p.Backpack:FindFirstChild("Knife")) then
+            return p
+        end
+    end
+    return nil
+end
+
+RunService.RenderStepped:Connect(function()
+    local m = getMurderer()
+    if not m or not m.Character or not m.Character:FindFirstChild("Head") then return end
+    
+    if Toggles.SilentAim or Toggles.Aimbot then
+        local myChar = LocalPlayer.Character
+        local gun = myChar and (myChar:FindFirstChild("Gun") or myChar:FindFirstChild("Pistol"))
+        if gun and Toggles.AutoShoot then
+            local targetHead = m.Character.Head
+            if Toggles.TriggerBot then
+                targetHead.CFrame = targetHead.CFrame * CFrame.new(0, 0, 1)
+            end
+        end
+    end
+    
+    if Toggles.GrabGun then
+        local drop = Workspace:FindFirstChild("GunDrop")
+        if drop and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = drop.CFrame + Vector3.new(0, 2, 0)
+        end
+    end
+end)
+
+local function actualizarESP()
+    if not Toggles.ESP then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Character and p.Character:FindFirstChild("NitsESP") then
+                p.Character["NitsESP"]:Destroy()
+            end
+        end
+        return
+    end
+
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local highlight = p.Character:FindFirstChild("NitsESP") or Instance.new("Highlight")
+            highlight.Name = "NitsESP"
+            highlight.Parent = p.Character
+            highlight.FillTransparency = 0.4
+            
+            local isMurder = p.Character:FindFirstChild("Knife") or p.Backpack:FindFirstChild("Knife")
+            local isSheriff = p.Character:FindFirstChild("Gun") or p.Backpack:FindFirstChild("Gun")
+            local esHeroe = isSheriff and p.Name ~= "Sheriff"
+            
+            if isMurder then
+                highlight.FillColor = Colors.Murder
+            elseif esHeroe then
+                highlight.FillColor = Colors.Hero
+            elseif isSheriff then
+                highlight.FillColor = Colors.Sheriff
+            else
+                highlight.FillColor = Colors.Innocent
+            end
+            highlight.OutlineColor = highlight.FillColor
+        end
+    end
+end
+
+task.spawn(function()
+    while task.wait(1) do
+        actualizarESP()
+    end
+end)
+
+local function crearBotonMenu(texto, estadoInicial, callback, padre)
+    local btn = Instance.new("TextButton")
+    btn.Text = texto .. ": " .. (estadoInicial and "ON" or "OFF")
+    btn.BackgroundColor3 = estadoInicial and Color3.fromRGB(50, 150, 50) or Color3.fromRGB(60, 60, 60)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Parent = padre
+    
+    local c = Instance.new("UICorner") c.CornerRadius = UDim.new(0, 6) c.Parent = btn
+    
+    local activo = estadoInicial
+    btn.MouseButton1Click:Connect(function()
+        activo = not activo
+        btn.Text = texto .. ": " .. (activo and "ON" or "OFF")
+        btn.BackgroundColor3 = activo and Color3.fromRGB(50, 150, 50) or Color3.fromRGB(60, 60, 60)
+        callback(activo)
+    end)
+    return btn
+end
+
+-- Generar Controles en pantalla
+crearBotonMenu("Silent Aim", Toggles.SilentAim, function(v) Toggles.SilentAim = v end, ContentContainer)
+crearBotonMenu("Auto Shoot", Toggles.AutoShoot, function(v) Toggles.AutoShoot = v end, ContentContainer)
+crearBotonMenu("Aimbot", Toggles.Aimbot, function(v) Toggles.Aimbot = v end, ContentContainer)
+crearBotonMenu("Trigger Bot", Toggles.TriggerBot, function(v) Toggles.TriggerBot = v end, ContentContainer)
+crearBotonMenu("Grab Gun", Toggles.GrabGun, function(v) Toggles.GrabGun = v end, ContentContainer)
+crearBotonMenu("Kill All", Toggles.KillAll, function(v) Toggles.KillAll = v end, ContentContainer)
+crearBotonMenu("Auto Throw", Toggles.AutoThrow, function(v) Toggles.AutoThrow = v end, ContentContainer)
+crearBotonMenu("Activar ESP", Toggles.ESP, function(v) Toggles.ESP = v end, ContentContainer)
+
+print("¡nitshub cargado correctamente!")
